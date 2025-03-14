@@ -331,7 +331,17 @@ Each question requires you to carry out a statistical analysis to test some hypo
 
 **1.** Conduct a chi-square test similar to the one carried out above, but test for a relationship between forest type (`section`) and channel unit (`unittype`) for *Coastal giant salamander* abundance. *Keep all unittypes* instead of filtering any like we did for the Cutthroat trout (10 pts.)
 
-<br>
+```{r}
+coastal_giant_sal_clean <- and_vertebrates %>%  
+  filter(species == "Coastal giant salamander") %>% 
+  drop_na(unittype, section)
+
+cont_table1 <- table(coastal_giant_sal_clean$section, coastal_giant_sal_clean$unittype)
+```
+
+```{r}
+chisq.test(cont_table1)
+```
 
 **2.** Test the hypothesis that there is a significant difference in species biomass between clear cut and old growth forest types for the *Coastal Giant salamander*. (10 pts.)
 
