@@ -1,0 +1,12 @@
+---
+title: "Lab 4: Statistics in R"
+subtitle: "Ecosystem Science and Sustainability 330"
+author: 
+  - name: Noah Goodhart
+    email: noahwg@rams.colostate.edu
+format: html
+editor: visual
+self-contained: TRUE
+---
+
+test test
