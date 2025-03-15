@@ -327,9 +327,9 @@ Each question requires you to carry out a statistical analysis to test some hypo
 
 -   Report the findings of your test in proper scientific format (with the p-value in parentheses).
 
-<br>
-
 **1.** Conduct a chi-square test similar to the one carried out above, but test for a relationship between forest type (`section`) and channel unit (`unittype`) for *Coastal giant salamander* abundance. *Keep all unittypes* instead of filtering any like we did for the Cutthroat trout (10 pts.)
+
+**Answer:** First I had to clean up the data, to filter only Coastal giant salamander, and then drop all N/A values in the unittype and section columns. Then I made a cont table to run the chi-square test. My x-squared value was = 200.71, my degrees of freedom was = 5, and my p-value was = (2.2e-16). Such a low p-value means that I can reject the null hypothesis, meaning there is a statistical significant result that there is a direct relationship between channel and forest type for Coastal giant salamander abundance.
 
 ```{r}
 coastal_giant_sal_clean <- and_vertebrates %>%  
@@ -345,11 +345,78 @@ chisq.test(cont_table1)
 
 **2.** Test the hypothesis that there is a significant difference in species biomass between clear cut and old growth forest types for the *Coastal Giant salamander*. (10 pts.)
 
-<br>
+**Answer:** First I filtered the data set to only include Coastal Giant salamander, in both clear cut and old growth forest types. I also dropped all N/A values for biomass.
+```{r}
+coastal_giant_sal_biomass <- and_vertebrates %>%
+  filter(species == "Coastal giant salamander", 
+         section %in% c("CC", "OG")) %>%
+  drop_na(weight_g)
+```
+
+I then needed two vectors of the weights (biomass) in each separate forest section. I then performed a equal varience test on the two vectors. I got (p-value =1.439e-07), which means I have to reject the null hypothesis. The null hypothesis being: The true ratio of variances is equal to one. This means that the variances are not equal.
+
+```{r}
+cc_sal_weight <- coastal_giant_sal_clean %>%  
+  filter(section == "CC") %>%  
+  pull(weight_g)
+
+og_sal_weight <- coastal_giant_sal_clean %>%  
+  filter(section == "OG") %>% 
+  pull(weight_g)
+
+var.test(cc_sal_weight, og_sal_weight)
+```
+I can double check my work from the previous code by plotting the data, and see that it is right skewed. This means I will have to perform a transformation on the data.
+```{r}
+ggpubr::ggarrange(ggpubr::gghistogram(cc_sal_weight, main = "Clear Cut"), 
+                  ggpubr::gghistogram(og_sal_weight, main = "Old Growth"))
+```
+Here I did another equal variance test, but took log transformation of the data, and got (p-value=0.005299). This isn't the best p-value, so I am going to plot the log transformed data in the next step to see if there is a normal distribution.
+```{r}
+var.test(log(log(cc_sal_weight)), log(log(og_sal_weight)))
+```
+After plotting the log transformed data, the distribution looks pretty normal, so we are going to go with it. (Also I ran a double log transformation on the clear cut and old growth vectors, and it skewed the data left, so a double log wouldn't work.)
+```{r}
+ggpubr::ggarrange(ggpubr::gghistogram(log(cc_sal_weight), main = "Clear Cut"), 
+                  ggpubr::gghistogram(log(og_sal_weight), main = "Old Growth"))
+```
+Finally, I did a t test on the log transformed data, and got (p-value=2.2e-6). This means that we can rejust the null hypothesis, and conclude there is a statistical significant difference in biomass between clear cut and  old growth forests for the Coastal giant salamander. From our result, we can see that the mean biomass in clear cut forests is 0.252393 grams higher than biomass in old growth forests.
+```{r}
+t.test(log(coastal_giant_sal_clean$weight_g) ~ coastal_giant_sal_clean$section, var.equal = TRUE)
+```
 
 **3.** Test the correlation between body length (snout to fork length) and body mass for *Cutthroat trout*. (Hint: run `?and_vertebrates` to find which length variable represents snout to fork length) (10 pts.)
 
-<br> <br>
+**Answer:** By using ?and_vertebrates, I found out that the two columns I need to use are length_1_mm for body length, and weight_g for body mass. First I need to clean the data, so I only have the data I want for this problem.
+```{r}
+trout1_clean <- and_vertebrates %>%  
+  filter(species == "Cutthroat trout") %>% 
+  drop_na(length_1_mm, weight_g)
+```
+
+Then I will create a histogram to visually represent the data.
+```{r}
+ggarrange(gghistogram(trout1_clean$length_1_mm, title = "Length"),
+gghistogram(trout1_clean$weight_g, title = "Weight"))
+```
+Seeing the data visually, it is clear that it is right skewed. I'll then test to see if the data will fit a normal distribution with a shapiro test. I will have to slice the data, since apparently it only works on 5,000 or less observations.
+As we can see from the above results, our (p-value = 2.2e-16) for both of our normality tests. This means that we reject the null hypothesis: The variable is normally distributed. This means the data is not normally distributed, so I will have to log transform the data.
+
+```{r}
+t1 <- trout1_clean %>% 
+  slice_sample(n = 5000)
+
+shapiro.test(t1$length_1_mm)
+shapiro.test(t1$weight_g)
+```
+Here I plotted the log transformed data, and got a somewhat normal distribution, even though it looks double peaked. 
+```{r}
+ggarrange(
+ gghistogram(log(trout1_clean$length_1_mm), title = "Length"), 
+ gghistogram(log(trout1_clean$weight_g), title = "Weight") 
+)
+```
+
 
 # Part 2: Multivariate Statistics
 
