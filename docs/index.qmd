@@ -704,7 +704,7 @@ multi_model <- lm(size ~ latitude + air_temp_sd + water_temp_sd, data = pie_crab
 
 summary(multi_model)
 ```
-After performing the correlation analysis, it revealed a strong positive correlation between latitude and air_temp_sd (r = 0.79), while water_temp_sd showed weak correlations with both predictors. The multiple linear regression indicated that latitude had a significant positive effect on crab carapace width (B = 0.559, p < 0.001), while air_temp_sd (p = 0.173) and water_temp_sd (p = 0.325) were not significant predictors.
+After performing the correlation analysis, it revealed a strong positive correlation between latitude and air_temp_sd (r = 0.79), while water_temp_sd showed weak correlations with both predictors. The multiple linear regression indicated that latitude had a significant positive effect on crab carapace width (B = 0.559, p < 0.001), while air_temp_sd (p = 0.173) and water_temp_sd (p = 0.325) were not significant predictors. The R^2 value of (0.3466) explained that there was a 35% variation of carapace width of the entire model.
 
 ## Acknowledgements
 
