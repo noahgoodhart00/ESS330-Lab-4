@@ -416,6 +416,24 @@ ggarrange(
  gghistogram(log(trout1_clean$weight_g), title = "Weight") 
 )
 ```
+Next I will perform a correlation test on the log transformed variables, and from the results, we can see a very small p-value, and a correlation very close to one, showing that there is a strong correlation between body length and mass.
+```{r}
+cor.test(log(trout1_clean$length_1_mm), log(trout1_clean$weight_g))
+```
+Here is the data visualized. 
+```{r}
+trout1_clean %>%  
+  mutate(log_length = log(length_1_mm), log_weight = log(weight_g)) %>%  
+  ggscatter(x = 'log_length', 
+            y = 'log_weight', 
+            alpha = .35,
+            add = "loess")
+```
+After all of that, I can now try a spearman correlation test with the raw data, to see if there is still a strong correlation between body length and mass.
+```{r}
+cor.test(trout1_clean$length_1_mm,trout1_clean$weight_g, method = "spearman")
+```
+From Spearman's Correlation test, we can see there is still a low p-value and correlation value close to 1, showing that there is a correlation between body length and mass of observed cutthroat trout.
 
 
 # Part 2: Multivariate Statistics
@@ -640,9 +658,53 @@ In your assignment, you will perform a multiple linear regression using variable
 
 1.  **After** completing the ANOVA test (and post-hoc Tukey's HSD) above to test for significant differences in crab size among 3 different sites: **1)** Create a boxplot showing the carapace width for each site where sites are *ordered by latitude* and **2)** report the findings of the statistical test as you would in a scientific paper. *Include both the code to create the boxplot and an image of the figure.* (10 pts.)
 
+**Answer**
+First I had to reorder the site data by latitude, otherwise it wouldn't plot it by latitiude. Then I made a simple box plot.
+```{r}
+pie_sites$site <- reorder(pie_sites$site, pie_sites$latitude)
+
+ggplot(pie_sites, aes(x = site, y = size, color = site)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.5) + 
+  geom_jitter(size = 0.25) +
+  labs(title = "Carapace Width by Site (Ordered by Latitude)",
+       x = "Site (Ordered by Latitude)",
+       y = "Carapace Width (mm)") +
+  theme_minimal() 
+```
+The ANOVA test above was conducted to examine the differences in crab carapace width among the three sites. The results showed a significant difference in mean carapace width between sites (F-value = 39.108), (p-value < 2.2e-16). Post-hoc Tukey’s HSD tests revealed that crabs at Site PIE had significantly larger carapace widths than those at Site DB and Site GTM.
+
+
 2.  Conduct a simple linear regression for the effect of `water_temp_sd` (a measure reflecting annual variation in water temperature) on carapace width. Report your findings (include code *and* a sentence reporting the results) AND create a plot with a line of best fit. *Include both the code to create the plot and an image of the figure*. (10 pts).
 
+```{r}
+wtr_temp_model <- lm(size ~ water_temp_sd, data = pie_crab)
+
+summary(wtr_temp_model)
+
+```
+After performing a linear regression analysis, the results indicated that annual variation in water temperature (water_temp_sd) had no significant effect on crab carapace width (F = 0.40, p = 0.53, R^2 = 0.001), suggesting that water_temp_sd has very little to do with determining carapace width.
+
+```{r}
+pie_crab %>%  
+  ggscatter(x = 'water_temp_sd', y = 'size', 
+            alpha = .35, 
+            add = "reg.line")
+```
+
+
 3.  Conduct a multiple linear regression for the effects of `latitude`, `air_temp_sd`, and `water_temp_sd` on carapace width. **First** check for correlations among the three predictor variables (and report the correlation table) and **second** report your findings from the multiple linear regression (code *and* a sentence reporting the results). (10 pts.)
+
+```{r}
+correlation_matrix <- cor(pie_crab[, c("latitude", "air_temp_sd", "water_temp_sd")], use = "complete.obs")
+
+print(correlation_matrix)
+```
+```{r}
+multi_model <- lm(size ~ latitude + air_temp_sd + water_temp_sd, data = pie_crab)
+
+summary(multi_model)
+```
+After performing the correlation analysis, it revealed a strong positive correlation between latitude and air_temp_sd (r = 0.79), while water_temp_sd showed weak correlations with both predictors. The multiple linear regression indicated that latitude had a significant positive effect on crab carapace width (B = 0.559, p < 0.001), while air_temp_sd (p = 0.173) and water_temp_sd (p = 0.325) were not significant predictors.
 
 ## Acknowledgements
 
